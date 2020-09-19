@@ -1,3 +1,4 @@
+import org.lwjgl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,6 +8,7 @@ public class SnakeGame {
 
     public static void main(String[] args) {
         logger.info("Hello world!");
+        logger.info("LWJGL " + Version.getVersion());
     }
 
 }
