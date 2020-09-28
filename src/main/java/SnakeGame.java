@@ -63,8 +63,9 @@ public class SnakeGame {
             "#version 330 core\n",
             "layout (location = 0) in vec3 position;\n",
             "uniform mat4 projection;\n",
+            "uniform mat4 model;\n",
             "void main() {",
-            "  gl_Position = projection * vec4(position, 1.0f);\n",
+            "  gl_Position = projection * model * vec4(position, 1.0f);\n",
             "}"
     };
 
@@ -77,14 +78,10 @@ public class SnakeGame {
     };
 
     private static final float[] vertices = {
-//            -0.5f, -0.5f, 0.0f,  // bottom left
-//             0.5f, -0.5f, 0.0f,  // bottom right
-//            -0.5f,  0.5f, 0.0f,  // top left
-//             0.5f,  0.5f, 0.0f,  // top right
-            -50.0f, -50.0f, 0.0f,  // bottom left
-             50.0f, -50.0f, 0.0f,  // bottom right
-            -50.0f,  50.0f, 0.0f,  // top left
-             50.0f,  50.0f, 0.0f,  // top right
+            -0.5f, -0.5f, 0.0f,  // bottom left
+             0.5f, -0.5f, 0.0f,  // bottom right
+            -0.5f,  0.5f, 0.0f,  // top left
+             0.5f,  0.5f, 0.0f,  // top right
     };
 
     private static final int[] indices = {
@@ -104,8 +101,10 @@ public class SnakeGame {
     private int ebo;
     private int shaderProgram;
     private int projUniform;
+    private int modelUniform;
 
     private Matrix4f projectionMatrix = new Matrix4f();
+    private Matrix4f modelMatrix = new Matrix4f();
     private FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
     private void init() {
@@ -254,6 +253,7 @@ public class SnakeGame {
 
             GL20.glUseProgram(this.shaderProgram);
             this.projUniform = GL20.glGetUniformLocation(this.shaderProgram, "projection");
+            this.modelUniform = GL20.glGetUniformLocation(this.shaderProgram, "model");
             GL20.glUseProgram(0);
         }
     }
@@ -289,6 +289,9 @@ public class SnakeGame {
         // Draw square
         GL20.glUseProgram(this.shaderProgram);
         GL30.glBindVertexArray(this.vao);
+        this.modelMatrix.translation(0.0f, 0.0f, 0.0f);
+        this.modelMatrix.scale(100);
+        GL20.glUniformMatrix4fv(this.modelUniform, false, this.modelMatrix.get(matrixBuffer));
         GL20.glUniformMatrix4fv(this.projUniform, false, this.projectionMatrix.get(matrixBuffer));
         GL15.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
     }
