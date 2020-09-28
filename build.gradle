@@ -2,9 +2,12 @@ plugins {
     id 'java'
 }
 
+ext.osType = project.properties['osType'] ?: 'macos'
+println "Building for ${osType}"
+
 ext {
     jomlVersion = "1.9.25"
-    lwjglNatives = "natives-windows"
+    lwjglNatives = "natives-$osType"
     lwjglVersion = "3.2.3"
     slf4jVersion = "1.7.28"
     tinylogVersion = "2.0.0"

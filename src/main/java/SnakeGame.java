@@ -29,6 +29,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
+import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
@@ -175,6 +176,13 @@ public class SnakeGame {
                     (vidmode.width() - pWidth.get(0)) >> 1,
                     (vidmode.height() - pHeight.get(0)) >> 1
             );
+            // XXX: Allow for Mac?
+            glfwGetFramebufferSize(this.window, pWidth, pHeight);
+            if (this.fbWidth != pWidth.get(0) || this.fbHeight != pHeight.get(0)) {
+                this.fbWidth = pWidth.get(0);
+                this.fbHeight = pHeight.get(0);
+                logger.trace("Framebuffer size: {} x {}", this.fbWidth, this.fbHeight);
+            }
         }
 
         // Make the OpenGL context current
