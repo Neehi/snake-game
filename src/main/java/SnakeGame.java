@@ -1,3 +1,4 @@
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.Version;
@@ -5,6 +6,10 @@ import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +47,35 @@ import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.system.MemoryStack.stackMallocFloat;
+import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class SnakeGame {
 
     private static final Logger logger = LoggerFactory.getLogger(SnakeGame.class);
+
+    public static CharSequence[] vertexShaderSource = {
+            "#version 330 core\n",
+            "layout (location = 0) in vec3 position;\n",
+            "void main() {",
+            "  gl_Position = vec4(position.x, position.y, position.z, 1.0f);\n",
+            "}"
+    };
+
+    public static CharSequence[] fragmentShaderSource = {
+            "#version 330 core\n",
+            "out vec4 fragColor;\n",
+            "void main() {",
+            "  fragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);",
+            "}"
+    };
+
+    private static final float[] vertices = {
+            -0.5f, -0.5f, 0.0f,  // left
+             0.5f, -0.5f, 0.0f,  // right
+             0.0f,  0.5f, 0.0f,  // top
+    };
 
     private long window;
     private String title = "Snake Game";
@@ -54,6 +83,10 @@ public class SnakeGame {
     private int height = 600;
     private int fbWidth = width;
     private int fbHeight = height;
+
+    private int vao;
+    private int vbo;
+    private int shaderProgram;
 
     private void init() {
         logger.debug("LWJGL " + Version.getVersion());
@@ -125,7 +158,7 @@ public class SnakeGame {
         });
 
         // Center the window
-        try (MemoryStack stack = MemoryStack.stackPush()) {
+        try (MemoryStack stack = stackPush()) {
             IntBuffer pWidth = stack.mallocInt(1);  // int*
             IntBuffer pHeight = stack.mallocInt(1);  // int*
             glfwGetWindowSize(this.window, pWidth, pHeight);
@@ -151,6 +184,74 @@ public class SnakeGame {
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
+
+        // Create GL resources
+        this.vao =  GL30.glGenVertexArrays();
+        GL30.glBindVertexArray(this.vao);
+
+        createProgram();
+        createTriangle();
+    }
+
+    private void createProgram() {
+        try (MemoryStack stack = stackPush()) {
+            IntBuffer pSuccess = stack.mallocInt(1);  // int*
+
+            logger.debug("Compiling vertex shader");
+            final int vertexShader = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
+            GL20.glShaderSource(vertexShader, vertexShaderSource);
+            GL20.glCompileShader(vertexShader);
+            GL20.glGetShaderiv(vertexShader, GL20.GL_COMPILE_STATUS, pSuccess);
+            if (pSuccess.get(0) == 0)
+                logger.error("Error compiling vertex shader - " + GL20.glGetShaderInfoLog(vertexShader), new RuntimeException());
+
+            logger.debug("Compiling fragment shader");
+            final int fragmentShader = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
+            GL20.glShaderSource(fragmentShader, fragmentShaderSource);
+            GL20.glCompileShader(fragmentShader);
+            GL20.glGetShaderiv(fragmentShader, GL20.GL_COMPILE_STATUS, pSuccess);
+            if (pSuccess.get(0) == 0)
+                logger.error("Error compiling fragment shader - " + GL20.glGetShaderInfoLog(fragmentShader), new RuntimeException());
+
+            logger.debug("Creating shader program");
+            this.shaderProgram = GL20.glCreateProgram();
+            GL20.glAttachShader(this.shaderProgram, vertexShader);
+            GL20.glAttachShader(this.shaderProgram, fragmentShader);
+            GL20.glLinkProgram(this.shaderProgram);
+            GL20.glGetProgramiv(this.shaderProgram, GL20.GL_COMPILE_STATUS, pSuccess);
+            if (pSuccess.get(0) == 0)
+                logger.error("Error linking shader program - " + GL20.glGetProgramInfoLog(this.shaderProgram), new RuntimeException());
+
+            GL20.glDeleteShader(vertexShader);
+            GL20.glDeleteShader(fragmentShader);
+        }
+    }
+
+    private void createTriangle() {
+        try (MemoryStack stack = stackPush()) {
+            FloatBuffer buffer = stackMallocFloat(3 * 3);
+            buffer.put(vertices);
+            buffer.flip();
+
+            this.vbo = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.vbo);
+            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
+
+            GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * 4, 0L);
+            GL30.glEnableVertexAttribArray(0);
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+            GL30.glBindVertexArray(0);  // XXX: Needed?
+        }
+    }
+
+    private void render() {
+        // Clear screen
+        GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
+        // Draw triangle
+        GL20.glUseProgram(this.shaderProgram);
+        GL30.glBindVertexArray(this.vao);
+        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 3);
     }
 
     private void run() {
@@ -159,8 +260,15 @@ public class SnakeGame {
 
             while (!glfwWindowShouldClose(this.window)) {
                 glfwPollEvents();
+                GL11.glViewport(0, 0, this.fbWidth, this.fbHeight);  // XXX: Needed?
+                render();
                 glfwSwapBuffers(this.window);
             }
+
+            logger.debug("Releasing GL resources");
+            GL20.glDeleteProgram(this.shaderProgram);
+            GL15.glDeleteBuffers(this.vbo);
+            GL30.glDeleteVertexArrays(this.vao);
 
             logger.debug("Destroying GLFW window");
             Callbacks.glfwFreeCallbacks(this.window);
