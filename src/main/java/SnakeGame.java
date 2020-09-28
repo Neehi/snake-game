@@ -48,6 +48,7 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.system.MemoryStack.stackMallocFloat;
+import static org.lwjgl.system.MemoryStack.stackMallocInt;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -72,9 +73,15 @@ public class SnakeGame {
     };
 
     private static final float[] vertices = {
-            -0.5f, -0.5f, 0.0f,  // left
-             0.5f, -0.5f, 0.0f,  // right
-             0.0f,  0.5f, 0.0f,  // top
+            -0.5f, -0.5f, 0.0f,  // bottom left
+             0.5f, -0.5f, 0.0f,  // bottom right
+            -0.5f,  0.5f, 0.0f,  // top left
+             0.5f,  0.5f, 0.0f,  // top right
+    };
+
+    private static final int[] indices = {
+            0, 1, 2, // first triangle
+            1, 2, 3  // second triangle
     };
 
     private long window;
@@ -86,6 +93,7 @@ public class SnakeGame {
 
     private int vao;
     private int vbo;
+    private int ebo;
     private int shaderProgram;
 
     private void init() {
@@ -190,7 +198,7 @@ public class SnakeGame {
         GL30.glBindVertexArray(this.vao);
 
         createProgram();
-        createTriangle();
+        createSquare();
     }
 
     private void createProgram() {
@@ -227,15 +235,22 @@ public class SnakeGame {
         }
     }
 
-    private void createTriangle() {
+    private void createSquare() {
         try (MemoryStack stack = stackPush()) {
-            FloatBuffer buffer = stackMallocFloat(3 * 3);
-            buffer.put(vertices);
-            buffer.flip();
+            FloatBuffer verticesBuffer = stackMallocFloat(4 * 3);
+            verticesBuffer.put(vertices);
+            verticesBuffer.flip();
+            IntBuffer indicesBuffer = stackMallocInt(6);
+            indicesBuffer.put(indices);
+            indicesBuffer.flip();
 
             this.vbo = GL15.glGenBuffers();
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.vbo);
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
+            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, verticesBuffer, GL15.GL_STATIC_DRAW);
+
+            this.ebo = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
+            GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL15.GL_STATIC_DRAW);
 
             GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * 4, 0L);
             GL30.glEnableVertexAttribArray(0);
@@ -248,10 +263,10 @@ public class SnakeGame {
         // Clear screen
         GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
-        // Draw triangle
+        // Draw square
         GL20.glUseProgram(this.shaderProgram);
         GL30.glBindVertexArray(this.vao);
-        GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, 3);
+        GL15.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
     }
 
     private void run() {
@@ -267,6 +282,7 @@ public class SnakeGame {
 
             logger.debug("Releasing GL resources");
             GL20.glDeleteProgram(this.shaderProgram);
+            GL15.glDeleteBuffers(this.ebo);
             GL15.glDeleteBuffers(this.vbo);
             GL30.glDeleteVertexArrays(this.vao);
 
