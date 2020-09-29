@@ -77,14 +77,14 @@ public class SnakeGame {
             "}"
     };
 
-    private static final float[] vertices = {
+    private static final float[] blockVertices = {
             -0.5f, -0.5f, 0.0f,  // bottom left
              0.5f, -0.5f, 0.0f,  // bottom right
             -0.5f,  0.5f, 0.0f,  // top left
              0.5f,  0.5f, 0.0f,  // top right
     };
 
-    private static final int[] indices = {
+    private static final int[] blockIndices = {
             0, 1, 2, // first triangle
             1, 2, 3  // second triangle
     };
@@ -97,9 +97,9 @@ public class SnakeGame {
     private int fbHeight = height;
 
     private int vao;
-    private int vbo;
-    private int ebo;
 
+    private int blockVbo;
+    private int blockEbo;
     private int blockProgram;
     private int blockProjUniform;
     private int blockModelUniform;
@@ -217,7 +217,7 @@ public class SnakeGame {
         GL30.glBindVertexArray(this.vao);
 
         createBlockProgram();
-        createSquare();
+        createBlockMesh();
     }
 
     private int createShader(int type, CharSequence... source) {
@@ -248,27 +248,29 @@ public class SnakeGame {
         GL20.glUseProgram(0);
     }
 
-    private void createSquare() {
+    private void createBlockMesh() {
         try (MemoryStack stack = stackPush()) {
+            // Vertices
             FloatBuffer verticesBuffer = stackMallocFloat(4 * 3);
-            verticesBuffer.put(vertices);
+            verticesBuffer.put(blockVertices);
             verticesBuffer.flip();
-            IntBuffer indicesBuffer = stackMallocInt(6);
-            indicesBuffer.put(indices);
-            indicesBuffer.flip();
-
-            this.vbo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.vbo);
+            this.blockVbo = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.blockVbo);
             GL15.glBufferData(GL15.GL_ARRAY_BUFFER, verticesBuffer, GL15.GL_STATIC_DRAW);
 
-            this.ebo = GL15.glGenBuffers();
-            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, this.ebo);
+            // Indices
+            IntBuffer indicesBuffer = stackMallocInt(6);
+            indicesBuffer.put(blockIndices);
+            indicesBuffer.flip();
+            this.blockEbo = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, this.blockEbo);
             GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL15.GL_STATIC_DRAW);
 
+            // ...
             GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * 4, 0L);
             GL30.glEnableVertexAttribArray(0);
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-            GL30.glBindVertexArray(0);  // XXX: Needed?
+//            GL30.glBindVertexArray(0);  // XXX: Needed?
         }
     }
 
@@ -300,8 +302,8 @@ public class SnakeGame {
 
             logger.debug("Releasing GL resources");
             GL20.glDeleteProgram(this.blockProgram);
-            GL15.glDeleteBuffers(this.ebo);
-            GL15.glDeleteBuffers(this.vbo);
+            GL15.glDeleteBuffers(this.blockEbo);
+            GL15.glDeleteBuffers(this.blockVbo);
             GL30.glDeleteVertexArrays(this.vao);
 
             logger.debug("Destroying GLFW window");
