@@ -212,6 +212,9 @@ public class SnakeGame {
         // bindings available for use.
         GL.createCapabilities();
 
+        // ...
+        GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+
         // Create GL resources
         this.vao =  GL30.glGenVertexArrays();
         GL30.glBindVertexArray(this.vao);
@@ -274,11 +277,7 @@ public class SnakeGame {
         }
     }
 
-    private void render() {
-        // Clear screen
-        GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
-        // Draw square
+    private void drawBlock() {
         GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
         this.modelMatrix.translation(0.0f, 0.0f, 0.0f);
@@ -286,6 +285,12 @@ public class SnakeGame {
         GL20.glUniformMatrix4fv(this.blockModelUniform, false, this.modelMatrix.get(matrixBuffer));
         GL20.glUniformMatrix4fv(this.blockProjUniform, false, this.projectionMatrix.get(matrixBuffer));
         GL15.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
+        GL20.glUseProgram(0);
+    }
+
+    private void render() {
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
+        drawBlock();
     }
 
     private void run() {
