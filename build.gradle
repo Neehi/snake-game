@@ -1,16 +1,29 @@
+import org.gradle.internal.os.OperatingSystem
+
 plugins {
     id 'java'
 }
 
-ext.osType = project.properties['osType'] ?: 'macos'
-println "Building for ${osType}"
-
 ext {
     jomlVersion = "1.9.25"
-    lwjglNatives = "natives-$osType"
     lwjglVersion = "3.2.3"
     slf4jVersion = "1.7.28"
     tinylogVersion = "2.0.0"
+}
+
+switch (OperatingSystem.current()) {
+    case OperatingSystem.LINUX:
+        def osArch = System.getProperty("os.arch")
+        project.ext.lwjglNatives = osArch.startsWith("arm") || osArch.startsWith("aarch64")
+                ? "natives-linux-${osArch.contains("64") || osArch.startsWith("armv8") ? "arm64" : "arm32"}"
+                : "natives-linux"
+        break
+    case OperatingSystem.MAC_OS:
+        project.ext.lwjglNatives = "natives-macos"
+        break
+    case OperatingSystem.WINDOWS:
+        project.ext.lwjglNatives = System.getProperty("os.arch").contains("64") ? "natives-windows" : "natives-windows-x86"
+        break
 }
 
 group 'org.example'
