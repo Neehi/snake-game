@@ -277,6 +277,10 @@ public class SnakeGame {
         }
     }
 
+    private void update() {
+        this.projectionMatrix = new Matrix4f().ortho2D(-this.fbWidth/2, this.fbWidth/2, -this.fbHeight/2,this.fbHeight/2);
+    }
+
     private void drawBlock() {
         GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
@@ -298,11 +302,11 @@ public class SnakeGame {
             init();
 
             while (!glfwWindowShouldClose(this.window)) {
-                glfwPollEvents();
                 GL11.glViewport(0, 0, this.fbWidth, this.fbHeight);  // XXX: Needed?
-                this.projectionMatrix = new Matrix4f().ortho2D(-this.fbWidth/2, this.fbWidth/2, -this.fbHeight/2,this.fbHeight/2);
+                update();
                 render();
                 glfwSwapBuffers(this.window);
+                glfwPollEvents();
             }
 
             logger.debug("Releasing GL resources");
