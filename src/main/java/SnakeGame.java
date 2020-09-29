@@ -108,11 +108,13 @@ public class SnakeGame {
     private Matrix4f modelMatrix = new Matrix4f();
     private FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
+    private GLFWErrorCallback errorCallback;
+
     private void init() {
         logger.debug("LWJGL " + Version.getVersion());
 
         // Setup error callback
-        glfwSetErrorCallback((error, description) -> {
+        this.errorCallback = glfwSetErrorCallback((error, description) -> {
             final String msg = GLFWErrorCallback.getDescription(description);
             logger.error(msg, new IllegalStateException());
         });
@@ -318,6 +320,7 @@ public class SnakeGame {
             logger.debug("Destroying GLFW window");
             Callbacks.glfwFreeCallbacks(this.window);
             glfwDestroyWindow(this.window);
+            this.errorCallback.free();
         } catch (Throwable t) {
             t.printStackTrace();
         } finally {
