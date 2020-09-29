@@ -99,9 +99,10 @@ public class SnakeGame {
     private int vao;
     private int vbo;
     private int ebo;
-    private int shaderProgram;
-    private int projUniform;
-    private int modelUniform;
+
+    private int blockProgram;
+    private int blockProjUniform;
+    private int blockModelUniform;
 
     private Matrix4f projectionMatrix = new Matrix4f();
     private Matrix4f modelMatrix = new Matrix4f();
@@ -215,47 +216,36 @@ public class SnakeGame {
         this.vao =  GL30.glGenVertexArrays();
         GL30.glBindVertexArray(this.vao);
 
-        createProgram();
+        createBlockProgram();
         createSquare();
     }
 
-    private void createProgram() {
-        try (MemoryStack stack = stackPush()) {
-            IntBuffer pSuccess = stack.mallocInt(1);  // int*
+    private int createShader(int type, CharSequence... source) {
+        final int shader = GL20.glCreateShader(type);
+        GL20.glShaderSource(shader, source);
+        GL20.glCompileShader(shader);
+        final int compiled = GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS); //, pSuccess);
+        if (compiled == 0)
+            logger.error("Error compiling shader - " + GL20.glGetShaderInfoLog(shader), new RuntimeException());
+        return shader;
+    }
 
-            logger.debug("Compiling vertex shader");
-            final int vertexShader = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
-            GL20.glShaderSource(vertexShader, vertexShaderSource);
-            GL20.glCompileShader(vertexShader);
-            GL20.glGetShaderiv(vertexShader, GL20.GL_COMPILE_STATUS, pSuccess);
-            if (pSuccess.get(0) == 0)
-                logger.error("Error compiling vertex shader - " + GL20.glGetShaderInfoLog(vertexShader), new RuntimeException());
-
-            logger.debug("Compiling fragment shader");
-            final int fragmentShader = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
-            GL20.glShaderSource(fragmentShader, fragmentShaderSource);
-            GL20.glCompileShader(fragmentShader);
-            GL20.glGetShaderiv(fragmentShader, GL20.GL_COMPILE_STATUS, pSuccess);
-            if (pSuccess.get(0) == 0)
-                logger.error("Error compiling fragment shader - " + GL20.glGetShaderInfoLog(fragmentShader), new RuntimeException());
-
-            logger.debug("Creating shader program");
-            this.shaderProgram = GL20.glCreateProgram();
-            GL20.glAttachShader(this.shaderProgram, vertexShader);
-            GL20.glAttachShader(this.shaderProgram, fragmentShader);
-            GL20.glLinkProgram(this.shaderProgram);
-            GL20.glGetProgramiv(this.shaderProgram, GL20.GL_COMPILE_STATUS, pSuccess);
-            if (pSuccess.get(0) == 0)
-                logger.error("Error linking shader program - " + GL20.glGetProgramInfoLog(this.shaderProgram), new RuntimeException());
-
-            GL20.glDeleteShader(vertexShader);
-            GL20.glDeleteShader(fragmentShader);
-
-            GL20.glUseProgram(this.shaderProgram);
-            this.projUniform = GL20.glGetUniformLocation(this.shaderProgram, "projection");
-            this.modelUniform = GL20.glGetUniformLocation(this.shaderProgram, "model");
-            GL20.glUseProgram(0);
-        }
+    private void createBlockProgram() {
+        final int vertexShader = createShader(GL20.GL_VERTEX_SHADER, vertexShaderSource);
+        final int fragmentShader = createShader(GL20.GL_FRAGMENT_SHADER, fragmentShaderSource);
+        this.blockProgram = GL20.glCreateProgram();
+        GL20.glAttachShader(this.blockProgram, vertexShader);
+        GL20.glAttachShader(this.blockProgram, fragmentShader);
+        GL20.glLinkProgram(this.blockProgram);
+        final int linked = GL20.glGetProgrami(this.blockProgram, GL20.GL_LINK_STATUS);
+        if (linked == 0)
+            logger.error("Error linking shader program - " + GL20.glGetProgramInfoLog(this.blockProgram), new RuntimeException());
+        GL20.glDeleteShader(vertexShader);
+        GL20.glDeleteShader(fragmentShader);
+        GL20.glUseProgram(this.blockProgram);
+        this.blockProjUniform = GL20.glGetUniformLocation(this.blockProgram, "projection");
+        this.blockModelUniform = GL20.glGetUniformLocation(this.blockProgram, "model");
+        GL20.glUseProgram(0);
     }
 
     private void createSquare() {
@@ -287,12 +277,12 @@ public class SnakeGame {
         GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
         // Draw square
-        GL20.glUseProgram(this.shaderProgram);
+        GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
         this.modelMatrix.translation(0.0f, 0.0f, 0.0f);
         this.modelMatrix.scale(100);
-        GL20.glUniformMatrix4fv(this.modelUniform, false, this.modelMatrix.get(matrixBuffer));
-        GL20.glUniformMatrix4fv(this.projUniform, false, this.projectionMatrix.get(matrixBuffer));
+        GL20.glUniformMatrix4fv(this.blockModelUniform, false, this.modelMatrix.get(matrixBuffer));
+        GL20.glUniformMatrix4fv(this.blockProjUniform, false, this.projectionMatrix.get(matrixBuffer));
         GL15.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
     }
 
@@ -309,7 +299,7 @@ public class SnakeGame {
             }
 
             logger.debug("Releasing GL resources");
-            GL20.glDeleteProgram(this.shaderProgram);
+            GL20.glDeleteProgram(this.blockProgram);
             GL15.glDeleteBuffers(this.ebo);
             GL15.glDeleteBuffers(this.vbo);
             GL30.glDeleteVertexArrays(this.vao);
