@@ -21,9 +21,13 @@ import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_DECORATED;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LAST;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_UNKNOWN;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_FORWARD_COMPAT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
@@ -310,6 +314,37 @@ public class SnakeGame {
         }
     }
 
+    private void processInput() {
+        // Up
+        if (this.keyPressed[GLFW_KEY_W]) {
+            if (this.snake.direction != Snake.Direction.DOWN) {
+                logger.trace("Snake: Direction changed - UP");
+                this.snake.direction = Snake.Direction.UP;
+            }
+        }
+        // Down
+        if (this.keyPressed[GLFW_KEY_S]) {
+            if (this.snake.direction != Snake.Direction.UP) {
+                logger.trace("Snake: Direction changed - DOWN");
+                this.snake.direction = Snake.Direction.DOWN;
+            }
+        }
+        // Left
+        if (this.keyPressed[GLFW_KEY_A]) {
+            if (this.snake.direction != Snake.Direction.RIGHT) {
+                logger.trace("Snake: Direction changed - LEFT");
+                this.snake.direction = Snake.Direction.LEFT;
+            }
+        }
+        // Right
+        if (this.keyPressed[GLFW_KEY_D]) {
+            if (this.snake.direction != Snake.Direction.LEFT) {
+                logger.trace("Snake: Direction changed - RIGHT");
+                this.snake.direction = Snake.Direction.RIGHT;
+            }
+        }
+    }
+
     private void update() {
         this.projectionMatrix = new Matrix4f().ortho2D(0, this.fbWidth, this.fbHeight,0);
         updateSnake();
@@ -374,6 +409,7 @@ public class SnakeGame {
 
             while (!glfwWindowShouldClose(this.window)) {
                 GL11.glViewport(0, 0, this.fbWidth, this.fbHeight);  // XXX: Needed?
+                processInput();
                 update();
                 render();
                 glfwSwapBuffers(this.window);
