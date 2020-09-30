@@ -2,6 +2,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.Callbacks;
@@ -72,8 +73,9 @@ public class SnakeGame {
     public static CharSequence[] fragmentShaderSource = {
             "#version 330 core\n",
             "out vec4 fragColor;\n",
+            "uniform vec3 color;\n",
             "void main() {",
-            "  fragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);",
+            "  fragColor = vec4(color, 1.0f);\n",
             "}"
     };
 
@@ -91,6 +93,7 @@ public class SnakeGame {
 
     private static class Block {
         public int x, y;
+        public Vector3f color = new Vector3f(1.0f, 1.0f, 1.0f);
     }
 
     private long window;
@@ -107,6 +110,7 @@ public class SnakeGame {
     private int blockProgram;
     private int blockProjUniform;
     private int blockModelUniform;
+    private int blockColorUniform;
 
     private Matrix4f projectionMatrix = new Matrix4f();
     private Matrix4f modelMatrix = new Matrix4f();
@@ -254,6 +258,7 @@ public class SnakeGame {
         GL20.glUseProgram(this.blockProgram);
         this.blockProjUniform = GL20.glGetUniformLocation(this.blockProgram, "projection");
         this.blockModelUniform = GL20.glGetUniformLocation(this.blockProgram, "model");
+        this.blockColorUniform = GL20.glGetUniformLocation(this.blockProgram, "color");
         GL20.glUseProgram(0);
     }
 
@@ -294,6 +299,7 @@ public class SnakeGame {
         this.modelMatrix.scale(100);
         GL20.glUniformMatrix4fv(this.blockModelUniform, false, this.modelMatrix.get(matrixBuffer));
         GL20.glUniformMatrix4fv(this.blockProjUniform, false, this.projectionMatrix.get(matrixBuffer));
+        GL20.glUniform3f(this.blockColorUniform, block.color.x, block.color.y, block.color.z);
         GL15.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
         GL20.glUseProgram(0);
     }
