@@ -103,6 +103,9 @@ public class SnakeGame {
     private int fbWidth = width;
     private int fbHeight = height;
 
+    private int gridCols = width / 20;
+    private int gridRows = height / 20;
+
     private int vao;
 
     private int blockVbo;
@@ -293,10 +296,17 @@ public class SnakeGame {
     }
 
     private void drawBlock(Block block) {
+        // Block size and position
+        final int blockWidth = this.fbWidth / this.gridCols;
+        final int blockHeight = this.fbHeight / this.gridRows;
+        // Block position - top left is (0,0)
+        final int blockX = (block.x * blockWidth) - (this.fbWidth / 2) + (blockWidth / 2);
+        final int blockY = (this.fbHeight / 2) - (block.y * blockHeight) - (blockHeight / 2);
+        // Render block
         GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
-        this.modelMatrix.translation(block.x, block.y, 0.0f);
-        this.modelMatrix.scale(100);
+        this.modelMatrix.translation(blockX, blockY, 0.0f);
+        this.modelMatrix.scale(blockWidth, blockHeight, 1.0f);
         GL20.glUniformMatrix4fv(this.blockModelUniform, false, this.modelMatrix.get(matrixBuffer));
         GL20.glUniformMatrix4fv(this.blockProjUniform, false, this.projectionMatrix.get(matrixBuffer));
         GL20.glUniform3f(this.blockColorUniform, block.color.x, block.color.y, block.color.z);
