@@ -292,7 +292,7 @@ public class SnakeGame {
     }
 
     private void update() {
-        this.projectionMatrix = new Matrix4f().ortho2D(-this.fbWidth/2, this.fbWidth/2, -this.fbHeight/2,this.fbHeight/2);
+        this.projectionMatrix = new Matrix4f().ortho2D(0, this.fbWidth, this.fbHeight,0);
     }
 
     private void drawBlock(Block block) {
@@ -300,8 +300,8 @@ public class SnakeGame {
         final int blockWidth = this.fbWidth / this.gridCols;
         final int blockHeight = this.fbHeight / this.gridRows;
         // Block position - top left is (0,0)
-        final int blockX = (block.x * blockWidth) - (this.fbWidth / 2) + (blockWidth / 2);
-        final int blockY = (this.fbHeight / 2) - (block.y * blockHeight) - (blockHeight / 2);
+        final int blockX = (block.x * blockWidth) + (blockWidth / 2);
+        final int blockY = (block.y * blockHeight) + (blockHeight / 2);
         // Render block
         GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
