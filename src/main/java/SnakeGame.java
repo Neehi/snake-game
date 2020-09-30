@@ -89,6 +89,10 @@ public class SnakeGame {
             1, 2, 3  // second triangle
     };
 
+    private static class Block {
+        public int x, y;
+    }
+
     private long window;
     private String title = "Snake Game";
     private int width = 800;
@@ -283,10 +287,10 @@ public class SnakeGame {
         this.projectionMatrix = new Matrix4f().ortho2D(-this.fbWidth/2, this.fbWidth/2, -this.fbHeight/2,this.fbHeight/2);
     }
 
-    private void drawBlock() {
+    private void drawBlock(Block block) {
         GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
-        this.modelMatrix.translation(0.0f, 0.0f, 0.0f);
+        this.modelMatrix.translation(block.x, block.y, 0.0f);
         this.modelMatrix.scale(100);
         GL20.glUniformMatrix4fv(this.blockModelUniform, false, this.modelMatrix.get(matrixBuffer));
         GL20.glUniformMatrix4fv(this.blockProjUniform, false, this.projectionMatrix.get(matrixBuffer));
@@ -296,7 +300,7 @@ public class SnakeGame {
 
     private void render() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
-        drawBlock();
+        drawBlock(new Block());
     }
 
     private void run() {
