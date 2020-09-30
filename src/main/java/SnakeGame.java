@@ -96,8 +96,15 @@ public class SnakeGame {
     };
 
     private static class Block {
-        public int x, y;
+        public float x, y;
         public Vector3f color = new Vector3f(1.0f, 1.0f, 1.0f);
+    }
+
+    private static class Snake {
+        public static enum Direction { UP, DOWN, LEFT, RIGHT }
+        public Direction direction = Direction.UP;
+        public Block head = new Block();
+        public float velocity = 0.1f;
     }
 
     private long window;
@@ -110,6 +117,8 @@ public class SnakeGame {
 
     private int gridCols = width / 20;
     private int gridRows = height / 20;
+
+    private Snake snake = new Snake();
 
     private int vao;
 
@@ -303,6 +312,32 @@ public class SnakeGame {
 
     private void update() {
         this.projectionMatrix = new Matrix4f().ortho2D(0, this.fbWidth, this.fbHeight,0);
+        updateSnake();
+    }
+
+    private void updateSnake() {
+        switch (this.snake.direction) {
+            case UP:
+                this.snake.head.y -= this.snake.velocity;
+                if (this.snake.head.y < 0)
+                    this.snake.head.y = this.gridRows - this.snake.head.y;
+                break;
+            case DOWN:
+                this.snake.head.y += this.snake.velocity;
+                if (this.snake.head.y >= this.gridRows)
+                    this.snake.head.y -= this.gridRows;
+                break;
+            case LEFT:
+                this.snake.head.x -= this.snake.velocity;
+                if (this.snake.head.x < 0)
+                    this.snake.head.x = this.gridCols - this.snake.head.x;
+                break;
+            case RIGHT:
+                this.snake.head.x += this.snake.velocity;
+                if (this.snake.head.x >= this.gridCols)
+                    this.snake.head.x -= this.gridCols;
+                break;
+        }
     }
 
     private void drawBlock(Block block) {
@@ -310,8 +345,8 @@ public class SnakeGame {
         final int blockWidth = this.fbWidth / this.gridCols;
         final int blockHeight = this.fbHeight / this.gridRows;
         // Block position - top left is (0,0)
-        final int blockX = (block.x * blockWidth) + (blockWidth / 2);
-        final int blockY = (block.y * blockHeight) + (blockHeight / 2);
+        final float blockX = (block.x * blockWidth) + (blockWidth / 2);
+        final float blockY = (block.y * blockHeight) + (blockHeight / 2);
         // Render block
         GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
@@ -324,9 +359,13 @@ public class SnakeGame {
         GL20.glUseProgram(0);
     }
 
+    private void drawSnake() {
+        drawBlock(this.snake.head);
+    }
+
     private void render() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
-        drawBlock(new Block());
+        drawSnake();
     }
 
     private void run() {
