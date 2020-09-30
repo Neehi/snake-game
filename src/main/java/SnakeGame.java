@@ -22,10 +22,14 @@ import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_DECORATED;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LAST;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_UNKNOWN;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_FORWARD_COMPAT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
+import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
+import static org.lwjgl.glfw.GLFW.GLFW_REPEAT;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
 import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
@@ -102,6 +106,7 @@ public class SnakeGame {
     private int height = 600;
     private int fbWidth = width;
     private int fbHeight = height;
+    private boolean[] keyPressed = new boolean[GLFW_KEY_LAST + 1];
 
     private int gridCols = width / 20;
     private int gridRows = height / 20;
@@ -165,11 +170,16 @@ public class SnakeGame {
 
         // Setup a key callback
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-            // Exit on 'Esc'
+            if (GLFW_KEY_UNKNOWN == key || key > GLFW_KEY_LAST)
+                return;
             if (GLFW_KEY_ESCAPE == key && GLFW_RELEASE == action) {
                 logger.trace("Key: Escape pressed");
-                glfwSetWindowShouldClose(window, true);
+                glfwSetWindowShouldClose(window, true);  // Exit on 'Esc'
             }
+            final boolean pressed = GLFW_PRESS == action || GLFW_REPEAT == action;
+            if (pressed)
+                logger.trace("Key: #{} pressed", key);
+            this.keyPressed[key] = pressed;
         });
 
         // Setup window size callback
