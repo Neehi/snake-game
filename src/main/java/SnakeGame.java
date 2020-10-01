@@ -126,6 +126,10 @@ public class SnakeGame {
     private int gridRows = height / 20;
 
     private Snake snake = new Snake();
+    {
+        this.snake.head.x = this.gridCols / 2;
+        this.snake.head.y = this.gridRows / 2;
+    }
     private Block food = new Block();
     {
         this.food.color = new Vector3f(1.0f, 0.9f, 0.0f);
