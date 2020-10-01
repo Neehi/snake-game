@@ -2,6 +2,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
+import org.joml.Random;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.Version;
@@ -111,6 +112,8 @@ public class SnakeGame {
         public float velocity = 0.1f;
     }
 
+    private final Random random = new Random();
+
     private long window;
     private String title = "Snake Game";
     private int width = 800;
@@ -123,6 +126,11 @@ public class SnakeGame {
     private int gridRows = height / 20;
 
     private Snake snake = new Snake();
+    private Block food = new Block();
+    {
+        this.food.color = new Vector3f(1.0f, 0.9f, 0.0f);
+        placeFood();
+    }
 
     private int vao;
 
@@ -375,6 +383,11 @@ public class SnakeGame {
         }
     }
 
+    private void placeFood() {
+        this.food.x = this.random.nextInt(this.gridCols - 1);
+        this.food.y = this.random.nextInt(this.gridRows - 1);
+    }
+
     private void drawBlock(Block block) {
         // Block size and position
         final int blockWidth = this.fbWidth / this.gridCols;
@@ -398,9 +411,14 @@ public class SnakeGame {
         drawBlock(this.snake.head);
     }
 
+    private void drawFood() {
+        drawBlock(this.food);
+    }
+
     private void render() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
         drawSnake();
+        drawFood();
     }
 
     private void run() {
