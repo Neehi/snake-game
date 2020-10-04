@@ -3,6 +3,7 @@ import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
 import org.joml.Random;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.Version;
@@ -100,15 +101,10 @@ public class SnakeGame {
             1, 2, 3  // second triangle
     };
 
-    private static class Block {
-        public float x, y;
-        public Vector3f color = new Vector3f(1.0f, 1.0f, 1.0f);
-    }
-
     private static class Snake {
         public static enum Direction { UP, DOWN, LEFT, RIGHT }
         public Direction direction = Direction.UP;
-        public Block head = new Block();
+        public Vector2f head = new Vector2f();
         public float velocity = 0.1f;
     }
 
@@ -130,9 +126,8 @@ public class SnakeGame {
         this.snake.head.x = this.gridCols / 2;
         this.snake.head.y = this.gridRows / 2;
     }
-    private Block food = new Block();
+    private Vector2f food = new Vector2f();
     {
-        this.food.color = new Vector3f(1.0f, 0.9f, 0.0f);
         placeFood();
     }
 
@@ -392,13 +387,13 @@ public class SnakeGame {
         this.food.y = this.random.nextInt(this.gridRows - 1);
     }
 
-    private void drawBlock(Block block) {
+    private void drawBlock(final Vector2f position, final Vector3f color) {
         // Block size and position
         final int blockWidth = this.fbWidth / this.gridCols;
         final int blockHeight = this.fbHeight / this.gridRows;
         // Block position - top left is (0,0)
-        final float blockX = ((float)Math.floor(block.x) * blockWidth) + (blockWidth / 2);
-        final float blockY = ((float)Math.floor(block.y) * blockHeight) + (blockHeight / 2);
+        final float blockX = ((float)Math.floor(position.x) * blockWidth) + (blockWidth / 2);
+        final float blockY = ((float)Math.floor(position.y) * blockHeight) + (blockHeight / 2);
         // Render block
         GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
@@ -406,17 +401,17 @@ public class SnakeGame {
         this.modelMatrix.scale(blockWidth, blockHeight, 1.0f);
         GL20.glUniformMatrix4fv(this.blockModelUniform, false, this.modelMatrix.get(matrixBuffer));
         GL20.glUniformMatrix4fv(this.blockProjUniform, false, this.projectionMatrix.get(matrixBuffer));
-        GL20.glUniform3f(this.blockColorUniform, block.color.x, block.color.y, block.color.z);
+        GL20.glUniform3f(this.blockColorUniform, color.x, color.y, color.z);
         GL15.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
         GL20.glUseProgram(0);
     }
 
     private void drawSnake() {
-        drawBlock(this.snake.head);
+        drawBlock(this.snake.head, new Vector3f(0.0f, 1.0f, 1.0f));
     }
 
     private void drawFood() {
-        drawBlock(this.food);
+        drawBlock(this.food, new Vector3f(1.0f, 1.0f, 0.0f));
     }
 
     private void render() {
