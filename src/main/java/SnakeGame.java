@@ -107,6 +107,7 @@ public class SnakeGame {
 
     private static final Vector3f snakeHeadColor = new Vector3f(0.0f, 1.0f, 1.0f);  // Cyan
     private static final Vector3f snakeTailColor = new Vector3f(1.0f, 1.0f, 1.0f);  // White
+    private static final Vector3f deadSnakeColor = new Vector3f(1.0f, 0.0f, 0.0f);  // Red
     private static final Vector3f foodColor = new Vector3f (1.0f, 0.9f, 0.0f);  // Yellow
 
     private static class Snake {
@@ -115,6 +116,7 @@ public class SnakeGame {
         public Vector2f head = new Vector2f();
         public List<Vector2f> tail = new ArrayList<Vector2f>();
         public boolean growing = false;
+        public boolean alive = true;
         public float velocity = 0.1f;
     }
 
@@ -364,6 +366,9 @@ public class SnakeGame {
     }
 
     private void update() {
+        if (!this.snake.alive)
+            return;
+
         updateSnake();
 
         // Collision detection
@@ -417,6 +422,14 @@ public class SnakeGame {
                 this.score++;
             }
         }
+
+        // Check for snake colliding with itself
+        for (final Vector2f tail : this.snake.tail) {
+            if (tail.equals(current)) {
+                logger.trace("Snake: Dead!");
+                this.snake.alive = false;
+            }
+        }
     }
 
     private void placeFood() {
@@ -444,10 +457,10 @@ public class SnakeGame {
     }
 
     private void drawSnake() {
-        drawBlock(this.snake.head, snakeHeadColor);
         for (Vector2f tail : this.snake.tail) {
             drawBlock(tail, snakeTailColor);
         }
+        drawBlock(this.snake.head, this.snake.alive ? snakeHeadColor : deadSnakeColor);
     }
 
     private void drawFood() {
