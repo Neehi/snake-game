@@ -57,6 +57,7 @@ import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowTitle;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
@@ -138,6 +139,7 @@ public class SnakeGame {
     {
         placeFood();
     }
+    private int score = 0;
 
     private int vao;
 
@@ -413,6 +415,7 @@ public class SnakeGame {
                 this.snake.tail.remove(0);
             } else {
                 this.snake.growing = false;
+                this.score++;
             }
         }
     }
@@ -464,9 +467,14 @@ public class SnakeGame {
 
             while (!glfwWindowShouldClose(this.window)) {
                 GL11.glViewport(0, 0, this.fbWidth, this.fbHeight);  // XXX: Needed?
+
                 processInput();
                 update();
                 render();
+
+                final String title = this.title + " - Score: " + this.score;
+                glfwSetWindowTitle(this.window, title);
+
                 glfwSwapBuffers(this.window);
                 glfwPollEvents();
             }
