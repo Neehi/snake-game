@@ -101,6 +101,10 @@ public class SnakeGame {
             1, 2, 3  // second triangle
     };
 
+    private static final Vector3f snakeHeadColor = new Vector3f(0.0f, 1.0f, 1.0f);  // Cyan
+    private static final Vector3f snakeTailColor = new Vector3f(1.0f, 1.0f, 1.0f);  // White
+    private static final Vector3f foodColor = new Vector3f (1.0f, 0.9f, 0.0f);  // Yellow
+
     private static class Snake {
         public static enum Direction { UP, DOWN, LEFT, RIGHT }
         public Direction direction = Direction.UP;
@@ -407,11 +411,11 @@ public class SnakeGame {
     }
 
     private void drawSnake() {
-        drawBlock(this.snake.head, new Vector3f(0.0f, 1.0f, 1.0f));
+        drawBlock(this.snake.head, snakeHeadColor);
     }
 
     private void drawFood() {
-        drawBlock(this.food, new Vector3f(1.0f, 1.0f, 0.0f));
+        drawBlock(this.food, foodColor);
     }
 
     private void render() {
