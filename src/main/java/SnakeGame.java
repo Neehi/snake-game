@@ -358,7 +358,15 @@ public class SnakeGame {
 
     private void update() {
         this.projectionMatrix = new Matrix4f().ortho2D(0, this.fbWidth, this.fbHeight,0);
+
         updateSnake();
+
+        // Collision detection
+        if (Math.abs(this.snake.head.x - this.food.x) < 1 && Math.abs(this.snake.head.y - this.food.y) < 1) {
+            logger.trace("Snake: Collision with food!");
+            placeFood();  // Move food
+            // TODO: Grow snake
+        }
     }
 
     private void updateSnake() {
