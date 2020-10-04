@@ -201,7 +201,7 @@ public class SnakeGame {
                 glfwSetWindowShouldClose(window, true);  // Exit on 'Esc'
             }
             final boolean pressed = GLFW_PRESS == action || GLFW_REPEAT == action;
-            if (pressed)
+            if (GLFW_PRESS == action)
                 logger.trace("Key: #{} pressed", key);
             this.keyPressed[key] = pressed;
         });
@@ -328,28 +328,28 @@ public class SnakeGame {
     private void processInput() {
         // Up
         if (this.keyPressed[GLFW_KEY_W]) {
-            if (this.snake.direction != Snake.Direction.DOWN) {
+            if (this.snake.direction != Snake.Direction.UP && this.snake.direction != Snake.Direction.DOWN) {
                 logger.trace("Snake: Direction changed - UP");
                 this.snake.direction = Snake.Direction.UP;
             }
         }
         // Down
         if (this.keyPressed[GLFW_KEY_S]) {
-            if (this.snake.direction != Snake.Direction.UP) {
+            if (this.snake.direction != Snake.Direction.DOWN && this.snake.direction != Snake.Direction.UP) {
                 logger.trace("Snake: Direction changed - DOWN");
                 this.snake.direction = Snake.Direction.DOWN;
             }
         }
         // Left
         if (this.keyPressed[GLFW_KEY_A]) {
-            if (this.snake.direction != Snake.Direction.RIGHT) {
+            if (this.snake.direction != Snake.Direction.LEFT && this.snake.direction != Snake.Direction.RIGHT) {
                 logger.trace("Snake: Direction changed - LEFT");
                 this.snake.direction = Snake.Direction.LEFT;
             }
         }
         // Right
         if (this.keyPressed[GLFW_KEY_D]) {
-            if (this.snake.direction != Snake.Direction.LEFT) {
+            if (this.snake.direction != Snake.Direction.RIGHT && this.snake.direction != Snake.Direction.LEFT) {
                 logger.trace("Snake: Direction changed - RIGHT");
                 this.snake.direction = Snake.Direction.RIGHT;
             }
