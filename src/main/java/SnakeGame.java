@@ -46,6 +46,7 @@ import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
 import static org.lwjgl.glfw.GLFW.glfwInit;
@@ -363,8 +364,6 @@ public class SnakeGame {
     }
 
     private void update() {
-        this.projectionMatrix = new Matrix4f().ortho2D(0, this.fbWidth, this.fbHeight,0);
-
         updateSnake();
 
         // Collision detection
@@ -465,16 +464,52 @@ public class SnakeGame {
         try {
             init();
 
-            while (!glfwWindowShouldClose(this.window)) {
-                GL11.glViewport(0, 0, this.fbWidth, this.fbHeight);  // XXX: Needed?
+            final int targetFrames = 60;
+            final double secondsPerFrame = 1.0d / targetFrames;
 
+            double lastTime = glfwGetTime();
+            double currentTime;
+            double delta;
+            double accumulatedDelta = 0;
+            double fpsTime = 0;
+            int fps = targetFrames;
+            int frameCount = 0;
+
+            while (!glfwWindowShouldClose(this.window)) {
+                // Update timers
+                currentTime = glfwGetTime();
+                delta = currentTime - lastTime;
+                lastTime = currentTime;
+                accumulatedDelta += delta;
+                fpsTime += delta;
+
+                // Handle input
                 processInput();
-                update();
+
+                // Update game
+                while (accumulatedDelta > secondsPerFrame) {
+                    update();
+                    accumulatedDelta -= secondsPerFrame;
+                }
+
+                // Render game
+                GL11.glViewport(0, 0, this.fbWidth, this.fbHeight);  // XXX: Needed?
+                this.projectionMatrix = new Matrix4f().ortho2D(0, this.fbWidth, this.fbHeight,0);
                 render();
 
-                final String title = this.title + " - Score: " + this.score;
+                // Update fps
+                frameCount++;
+                if (fpsTime >= 1.0d) {
+                    fps = frameCount;
+                    frameCount = 0;
+                    fpsTime -= 1.0d;
+                }
+
+                // Update window title
+                final String title = this.title + " - Score: " + this.score + " FPS: " + fps;
                 glfwSetWindowTitle(this.window, title);
 
+                // ...
                 glfwSwapBuffers(this.window);
                 glfwPollEvents();
             }
