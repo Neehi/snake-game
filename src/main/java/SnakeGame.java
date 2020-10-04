@@ -1,5 +1,7 @@
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.joml.Matrix4f;
 import org.joml.Random;
@@ -109,6 +111,8 @@ public class SnakeGame {
         public static enum Direction { UP, DOWN, LEFT, RIGHT }
         public Direction direction = Direction.UP;
         public Vector2f head = new Vector2f();
+        public List<Vector2f> tail = new ArrayList<Vector2f>();
+        public boolean growing = false;
         public float velocity = 0.1f;
     }
 
@@ -365,11 +369,15 @@ public class SnakeGame {
         if (Math.abs(this.snake.head.x - this.food.x) < 1 && Math.abs(this.snake.head.y - this.food.y) < 1) {
             logger.trace("Snake: Collision with food!");
             placeFood();  // Move food
-            // TODO: Grow snake
+            this.snake.growing = true;  // Set snake to growing
         }
     }
 
     private void updateSnake() {
+        // Grid position pre-update
+        final Vector2f previous = new Vector2f((float)Math.floor(this.snake.head.x), (float)Math.floor(this.snake.head.y));
+
+        // Update head
         switch (this.snake.direction) {
             case UP:
                 this.snake.head.y -= this.snake.velocity;
@@ -391,6 +399,21 @@ public class SnakeGame {
                 if (this.snake.head.x >= this.gridCols)
                     this.snake.head.x -= this.gridCols;
                 break;
+        }
+
+        // Grid position post-update
+        final Vector2f current = new Vector2f((float)Math.floor(this.snake.head.x), (float)Math.floor(this.snake.head.y));
+
+        // Update body
+        if (!previous.equals(current)) {
+            // 1. Add current position to end of tail
+            // 2. If not growing remove stat of tail
+            this.snake.tail.add(new Vector2f(previous.x, previous.y));
+            if (!this.snake.growing) {
+                this.snake.tail.remove(0);
+            } else {
+                this.snake.growing = false;
+            }
         }
     }
 
@@ -420,6 +443,9 @@ public class SnakeGame {
 
     private void drawSnake() {
         drawBlock(this.snake.head, snakeHeadColor);
+        for (Vector2f tail : this.snake.tail) {
+            drawBlock(tail, snakeTailColor);
+        }
     }
 
     private void drawFood() {
