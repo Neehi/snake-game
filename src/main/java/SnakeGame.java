@@ -397,8 +397,8 @@ public class SnakeGame {
         final int blockWidth = this.fbWidth / this.gridCols;
         final int blockHeight = this.fbHeight / this.gridRows;
         // Block position - top left is (0,0)
-        final float blockX = (block.x * blockWidth) + (blockWidth / 2);
-        final float blockY = (block.y * blockHeight) + (blockHeight / 2);
+        final float blockX = ((float)Math.floor(block.x) * blockWidth) + (blockWidth / 2);
+        final float blockY = ((float)Math.floor(block.y) * blockHeight) + (blockHeight / 2);
         // Render block
         GL20.glUseProgram(this.blockProgram);
         GL30.glBindVertexArray(this.vao);
