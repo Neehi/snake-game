@@ -372,8 +372,8 @@ public class SnakeGame {
         updateSnake();
 
         // Collision detection
-        if (Math.abs(this.snake.head.x - this.food.x) < 1 && Math.abs(this.snake.head.y - this.food.y) < 1) {
-            logger.trace("Snake: Collision with food!");
+        if ((int)this.snake.head.x == (int)this.food.x && (int)this.snake.head.y == (int)this.food.y) {
+            logger.trace("Snake: Collision with food! Snake{}, Food{}", this.snake.head, this.food);
             placeFood();  // Move food
             this.snake.growing = true;  // Set snake to growing
             this.snake.velocity += 0.02f;
