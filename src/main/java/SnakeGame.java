@@ -376,6 +376,7 @@ public class SnakeGame {
             logger.trace("Snake: Collision with food!");
             placeFood();  // Move food
             this.snake.growing = true;  // Set snake to growing
+            this.snake.velocity += 0.02f;
         }
     }
 
