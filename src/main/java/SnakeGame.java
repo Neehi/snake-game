@@ -501,7 +501,7 @@ public class SnakeGame {
                 processInput();
 
                 // Update game
-                while (accumulatedDelta > secondsPerFrame) {
+                while (accumulatedDelta >= secondsPerFrame) {
                     update();
                     accumulatedDelta -= secondsPerFrame;
                 }
