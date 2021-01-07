@@ -387,7 +387,7 @@ public class SnakeGame {
             case UP:
                 this.snake.head.y -= this.snake.velocity;
                 if (this.snake.head.y < 0)
-                    this.snake.head.y = this.gridRows - this.snake.head.y;
+                    this.snake.head.y = this.gridRows + this.snake.head.y;
                 break;
             case DOWN:
                 this.snake.head.y += this.snake.velocity;
@@ -397,7 +397,7 @@ public class SnakeGame {
             case LEFT:
                 this.snake.head.x -= this.snake.velocity;
                 if (this.snake.head.x < 0)
-                    this.snake.head.x = this.gridCols - this.snake.head.x;
+                    this.snake.head.x = this.gridCols + this.snake.head.x;
                 break;
             case RIGHT:
                 this.snake.head.x += this.snake.velocity;
