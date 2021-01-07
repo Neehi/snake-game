@@ -94,15 +94,15 @@ public class SnakeGame {
     };
 
     private static final float[] blockVertices = {
-            -0.5f, -0.5f, 0.0f,  // bottom left
-             0.5f, -0.5f, 0.0f,  // bottom right
-            -0.5f,  0.5f, 0.0f,  // top left
-             0.5f,  0.5f, 0.0f,  // top right
+            0.0f, 1.0f, 0.0f,  // bottom left
+            1.0f, 1.0f, 0.0f,  // bottom right
+            0.0f, 0.0f, 0.0f,  // top left
+            1.0f, 0.0f, 0.0f,  // top right
     };
 
     private static final int[] blockIndices = {
-            0, 1, 2, // first triangle
-            1, 2, 3  // second triangle
+            0, 1, 2,  // first triangle
+            2, 1, 3,  // second triangle
     };
 
     private static final Vector3f snakeHeadColor = new Vector3f(0.0f, 1.0f, 1.0f);  // Cyan
@@ -149,8 +149,7 @@ public class SnakeGame {
     private int shaderModelUniform;
     private int shaderColorUniform;
 
-    private int vao;
-
+    private int blockVao;
     private int blockVbo;
     private int blockEbo;
 
@@ -272,10 +271,6 @@ public class SnakeGame {
 
         // Create GL resources
         createShaderProgram();
-
-        this.vao =  GL30.glGenVertexArrays();
-        GL30.glBindVertexArray(this.vao);
-
         createBlockMesh();
     }
 
@@ -312,16 +307,21 @@ public class SnakeGame {
 
     private void createBlockMesh() {
         try (MemoryStack stack = stackPush()) {
+            this.blockVao =  GL30.glGenVertexArrays();
+            GL30.glBindVertexArray(this.blockVao);
+
             // Vertices
-            FloatBuffer verticesBuffer = stackMallocFloat(4 * 3);
+            FloatBuffer verticesBuffer = stackMallocFloat(blockVertices.length * 3);
             verticesBuffer.put(blockVertices);
             verticesBuffer.flip();
             this.blockVbo = GL15.glGenBuffers();
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, this.blockVbo);
             GL15.glBufferData(GL15.GL_ARRAY_BUFFER, verticesBuffer, GL15.GL_STATIC_DRAW);
+            GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 0, 0L);
+            GL30.glEnableVertexAttribArray(0);
 
             // Indices
-            IntBuffer indicesBuffer = stackMallocInt(6);
+            IntBuffer indicesBuffer = stackMallocInt(blockIndices.length);
             indicesBuffer.put(blockIndices);
             indicesBuffer.flip();
             this.blockEbo = GL15.glGenBuffers();
@@ -329,10 +329,8 @@ public class SnakeGame {
             GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL15.GL_STATIC_DRAW);
 
             // ...
-            GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 3 * 4, 0L);
-            GL30.glEnableVertexAttribArray(0);
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-//            GL30.glBindVertexArray(0);  // XXX: Needed?
+            GL30.glBindVertexArray(0);  // XXX: Needed?
         }
     }
 
@@ -445,11 +443,11 @@ public class SnakeGame {
         final int blockWidth = this.fbWidth / this.gridCols;
         final int blockHeight = this.fbHeight / this.gridRows;
         // Block position - top left is (0,0)
-        final float blockX = ((float)Math.floor(position.x) * blockWidth) + (blockWidth / 2);
-        final float blockY = ((float)Math.floor(position.y) * blockHeight) + (blockHeight / 2);
+        final float blockX = ((float)Math.floor(position.x) * blockWidth);
+        final float blockY = ((float)Math.floor(position.y) * blockHeight);
         // Render block
         GL20.glUseProgram(this.shaderProgram);
-        GL30.glBindVertexArray(this.vao);
+        GL30.glBindVertexArray(this.blockVao);
         this.modelMatrix.translation(blockX, blockY, 0.0f);
         this.modelMatrix.scale(blockWidth, blockHeight, 1.0f);
         GL20.glUniformMatrix4fv(this.shaderModelUniform, false, this.modelMatrix.get(matrixBuffer));
@@ -533,7 +531,7 @@ public class SnakeGame {
             logger.debug("Releasing GL resources");
             GL15.glDeleteBuffers(this.blockEbo);
             GL15.glDeleteBuffers(this.blockVbo);
-            GL30.glDeleteVertexArrays(this.vao);
+            GL30.glDeleteVertexArrays(this.blockVao);
             GL20.glDeleteProgram(this.shaderProgram);
 
             logger.debug("Destroying GLFW window");
