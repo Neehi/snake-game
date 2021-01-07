@@ -544,7 +544,6 @@ public class SnakeGame {
     }
 
     public static void main(String[] args) {
-        logger.info("Hello world!");
         new SnakeGame().run();
     }
 
