@@ -76,20 +76,20 @@ public class SnakeGame {
 
     public static CharSequence[] vertexShaderSource = {
             "#version 330 core\n",
-            "layout (location = 0) in vec3 position;\n",
-            "uniform mat4 projection;\n",
-            "uniform mat4 model;\n",
-            "void main() {",
-            "  gl_Position = projection * model * vec4(position, 1.0f);\n",
+            "layout (location = 0) in vec3 a_Position;\n",
+            "uniform mat4 u_Projection;\n",
+            "uniform mat4 u_Model;\n",
+            "void main() {\n",
+            "  gl_Position = u_Projection * u_Model * vec4(a_Position, 1.0f);\n",
             "}"
     };
 
     public static CharSequence[] fragmentShaderSource = {
             "#version 330 core\n",
+            "uniform vec3 u_Color;\n",
             "out vec4 fragColor;\n",
-            "uniform vec3 color;\n",
-            "void main() {",
-            "  fragColor = vec4(color, 1.0f);\n",
+            "void main() {\n",
+            "  fragColor = vec4(u_Color, 1.0f);\n",
             "}"
     };
 
@@ -144,14 +144,15 @@ public class SnakeGame {
     }
     private int score = 0;
 
+    private int shaderProgram;
+    private int shaderProjUniform;
+    private int shaderModelUniform;
+    private int shaderColorUniform;
+
     private int vao;
 
     private int blockVbo;
     private int blockEbo;
-    private int blockProgram;
-    private int blockProjUniform;
-    private int blockModelUniform;
-    private int blockColorUniform;
 
     private Matrix4f projectionMatrix = new Matrix4f();
     private Matrix4f modelMatrix = new Matrix4f();
@@ -270,10 +271,11 @@ public class SnakeGame {
         GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
         // Create GL resources
+        createShaderProgram();
+
         this.vao =  GL30.glGenVertexArrays();
         GL30.glBindVertexArray(this.vao);
 
-        createBlockProgram();
         createBlockMesh();
     }
 
@@ -281,28 +283,30 @@ public class SnakeGame {
         final int shader = GL20.glCreateShader(type);
         GL20.glShaderSource(shader, source);
         GL20.glCompileShader(shader);
-        final int compiled = GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS); //, pSuccess);
-        if (compiled == 0)
-            logger.error("Error compiling shader - " + GL20.glGetShaderInfoLog(shader), new RuntimeException());
+        if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
+            logger.error("Error compiling shader - " + GL20.glGetShaderInfoLog(shader));
+            throw new RuntimeException("Error compiling shader - " + GL20.glGetShaderInfoLog(shader));
+        }
         return shader;
     }
 
-    private void createBlockProgram() {
+    private void createShaderProgram() {
         final int vertexShader = createShader(GL20.GL_VERTEX_SHADER, vertexShaderSource);
         final int fragmentShader = createShader(GL20.GL_FRAGMENT_SHADER, fragmentShaderSource);
-        this.blockProgram = GL20.glCreateProgram();
-        GL20.glAttachShader(this.blockProgram, vertexShader);
-        GL20.glAttachShader(this.blockProgram, fragmentShader);
-        GL20.glLinkProgram(this.blockProgram);
-        final int linked = GL20.glGetProgrami(this.blockProgram, GL20.GL_LINK_STATUS);
-        if (linked == 0)
-            logger.error("Error linking shader program - " + GL20.glGetProgramInfoLog(this.blockProgram), new RuntimeException());
+        this.shaderProgram = GL20.glCreateProgram();
+        GL20.glAttachShader(this.shaderProgram, vertexShader);
+        GL20.glAttachShader(this.shaderProgram, fragmentShader);
+        GL20.glLinkProgram(this.shaderProgram);
+        if (GL20.glGetProgrami(this.shaderProgram, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
+            logger.error("Error linking shader program - " + GL20.glGetProgramInfoLog(this.shaderProgram));
+            throw new RuntimeException("Error linking shader  program - " + GL20.glGetShaderInfoLog(this.shaderProgram));
+        }
         GL20.glDeleteShader(vertexShader);
         GL20.glDeleteShader(fragmentShader);
-        GL20.glUseProgram(this.blockProgram);
-        this.blockProjUniform = GL20.glGetUniformLocation(this.blockProgram, "projection");
-        this.blockModelUniform = GL20.glGetUniformLocation(this.blockProgram, "model");
-        this.blockColorUniform = GL20.glGetUniformLocation(this.blockProgram, "color");
+        GL20.glUseProgram(this.shaderProgram);
+        this.shaderProjUniform = GL20.glGetUniformLocation(this.shaderProgram, "u_Projection");
+        this.shaderModelUniform = GL20.glGetUniformLocation(this.shaderProgram, "u_Model");
+        this.shaderColorUniform = GL20.glGetUniformLocation(this.shaderProgram, "u_Color");
         GL20.glUseProgram(0);
     }
 
@@ -444,13 +448,13 @@ public class SnakeGame {
         final float blockX = ((float)Math.floor(position.x) * blockWidth) + (blockWidth / 2);
         final float blockY = ((float)Math.floor(position.y) * blockHeight) + (blockHeight / 2);
         // Render block
-        GL20.glUseProgram(this.blockProgram);
+        GL20.glUseProgram(this.shaderProgram);
         GL30.glBindVertexArray(this.vao);
         this.modelMatrix.translation(blockX, blockY, 0.0f);
         this.modelMatrix.scale(blockWidth, blockHeight, 1.0f);
-        GL20.glUniformMatrix4fv(this.blockModelUniform, false, this.modelMatrix.get(matrixBuffer));
-        GL20.glUniformMatrix4fv(this.blockProjUniform, false, this.projectionMatrix.get(matrixBuffer));
-        GL20.glUniform3f(this.blockColorUniform, color.x, color.y, color.z);
+        GL20.glUniformMatrix4fv(this.shaderModelUniform, false, this.modelMatrix.get(matrixBuffer));
+        GL20.glUniformMatrix4fv(this.shaderProjUniform, false, this.projectionMatrix.get(matrixBuffer));
+        GL20.glUniform3f(this.shaderColorUniform, color.x, color.y, color.z);
         GL15.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
         GL20.glUseProgram(0);
     }
@@ -527,10 +531,10 @@ public class SnakeGame {
             }
 
             logger.debug("Releasing GL resources");
-            GL20.glDeleteProgram(this.blockProgram);
             GL15.glDeleteBuffers(this.blockEbo);
             GL15.glDeleteBuffers(this.blockVbo);
             GL30.glDeleteVertexArrays(this.vao);
+            GL20.glDeleteProgram(this.shaderProgram);
 
             logger.debug("Destroying GLFW window");
             Callbacks.glfwFreeCallbacks(this.window);
