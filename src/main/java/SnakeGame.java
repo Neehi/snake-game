@@ -123,22 +123,22 @@ public class SnakeGame {
     private final Random random = new Random();
 
     private long window;
-    private String title = "Snake Game";
+    private final String title = "Snake Game";
     private int width = 800;
     private int height = 600;
     private int fbWidth = width;
     private int fbHeight = height;
-    private boolean[] keyPressed = new boolean[GLFW_KEY_LAST + 1];
+    private final boolean[] keyPressed = new boolean[GLFW_KEY_LAST + 1];
 
-    private int gridCols = width / 20;
-    private int gridRows = height / 20;
+    private final int gridCols = width / 20;
+    private final int gridRows = height / 20;
 
-    private Snake snake = new Snake();
+    private final Snake snake = new Snake();
     {
-        this.snake.head.x = this.gridCols / 2;
-        this.snake.head.y = this.gridRows / 2;
+        this.snake.head.x = (float)(this.gridCols / 2);
+        this.snake.head.y = (float)(this.gridRows / 2);
     }
-    private Vector2f food = new Vector2f();
+    private final Vector2f food = new Vector2f();
     {
         placeFood();
     }
@@ -154,8 +154,8 @@ public class SnakeGame {
     private int blockEbo;
 
     private Matrix4f projectionMatrix = new Matrix4f();
-    private Matrix4f modelMatrix = new Matrix4f();
-    private FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+    private final Matrix4f modelMatrix = new Matrix4f();
+    private final FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
     private void init() {
         logger.debug("LWJGL " + Version.getVersion());
