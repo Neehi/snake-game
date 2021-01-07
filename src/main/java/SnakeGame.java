@@ -266,9 +266,6 @@ public class SnakeGame {
         // bindings available for use.
         GL.createCapabilities();
 
-        // ...
-        GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-
         // Create GL resources
         createShaderProgram();
         createBlockMesh();
@@ -446,15 +443,12 @@ public class SnakeGame {
         final float blockX = ((float)Math.floor(position.x) * blockWidth);
         final float blockY = ((float)Math.floor(position.y) * blockHeight);
         // Render block
-        GL20.glUseProgram(this.shaderProgram);
-        GL30.glBindVertexArray(this.blockVao);
         this.modelMatrix.translation(blockX, blockY, 0.0f);
         this.modelMatrix.scale(blockWidth, blockHeight, 1.0f);
         GL20.glUniformMatrix4fv(this.shaderModelUniform, false, this.modelMatrix.get(matrixBuffer));
         GL20.glUniformMatrix4fv(this.shaderProjUniform, false, this.projectionMatrix.get(matrixBuffer));
         GL20.glUniform3f(this.shaderColorUniform, color.x, color.y, color.z);
         GL15.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
-        GL20.glUseProgram(0);
     }
 
     private void drawSnake() {
@@ -469,9 +463,14 @@ public class SnakeGame {
     }
 
     private void render() {
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);  // | GL11.GL_DEPTH_BUFFER_BIT);
+        GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+        GL20.glUseProgram(this.shaderProgram);
+        GL30.glBindVertexArray(this.blockVao);
         drawSnake();
         drawFood();
+        GL30.glBindVertexArray(0);
+        GL20.glUseProgram(0);
     }
 
     private void run() {
@@ -507,7 +506,6 @@ public class SnakeGame {
                 }
 
                 // Render game
-                GL11.glViewport(0, 0, this.fbWidth, this.fbHeight);  // XXX: Needed?
                 this.projectionMatrix = new Matrix4f().ortho2D(0, this.fbWidth, this.fbHeight,0);
                 render();
 
