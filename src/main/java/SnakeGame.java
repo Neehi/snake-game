@@ -163,18 +163,20 @@ public class SnakeGame {
         // Setup error callback
         glfwSetErrorCallback((error, description) -> {
             final String msg = GLFWErrorCallback.getDescription(description);
-            logger.error(msg, new IllegalStateException());
+            logger.error(msg);
         });
 
         // Initialize GLFW
         logger.debug("Initializing GLFW");
-        if (!glfwInit())
-            throw new IllegalStateException("Error initializing GLFW");
+        if (!glfwInit()) {
+            logger.error("Unable to initialize GLFW");
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
 
         long monitor = glfwGetPrimaryMonitor();
         GLFWVidMode vidmode = glfwGetVideoMode(monitor);
         logger.debug(
-                "Current video mode: {} x {} {}:{}:{} @ {}Hz",
+                "Current video mode: {}x{} {}:{}:{} @ {}Hz",
                 vidmode.width(),
                 vidmode.height(),
                 vidmode.redBits(),
@@ -194,10 +196,12 @@ public class SnakeGame {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
         // Create the window
-        logger.debug("Creating window: {} x {}", this.width, this.height);
+        logger.debug("Creating window: \"{}\" ({}x{})", this.title, this.width, this.height);
         this.window = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
-        if (NULL == this.window)
-            logger.error("Error creating GLFW window", new RuntimeException());
+        if (NULL == this.window) {
+            logger.error("Failed to create GLFW window");
+            throw new IllegalStateException("Failed to create GLFW window");
+        }
 
         // Setup a key callback
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
@@ -218,7 +222,7 @@ public class SnakeGame {
             if (window == SnakeGame.this.window && width > 0 && height > 0 && (width != SnakeGame.this.width || height != SnakeGame.this.height)) {
                 SnakeGame.this.width = width;
                 SnakeGame.this.height = height;
-                logger.trace("Window resized: {} x {}", width, height);
+                logger.trace("Window resized: {}x{}", width, height);
             }
         });
 
@@ -227,7 +231,7 @@ public class SnakeGame {
             if (window == SnakeGame.this.window && width > 0 && height > 0 && (width != SnakeGame.this.fbWidth || height != SnakeGame.this.fbHeight)) {
                 SnakeGame.this.fbWidth = width;
                 SnakeGame.this.fbHeight = height;
-                logger.trace("Framebuffer resized: {} x {}", width, height);
+                logger.trace("Framebuffer resized: {}x{}", width, height);
             }
         });
 
@@ -246,7 +250,7 @@ public class SnakeGame {
             if (this.fbWidth != pWidth.get(0) || this.fbHeight != pHeight.get(0)) {
                 this.fbWidth = pWidth.get(0);
                 this.fbHeight = pHeight.get(0);
-                logger.trace("Framebuffer size: {} x {}", this.fbWidth, this.fbHeight);
+                logger.trace("Framebuffer size: {}x{}", this.fbWidth, this.fbHeight);
             }
         }
 
